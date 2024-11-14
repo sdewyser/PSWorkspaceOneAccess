@@ -19,7 +19,7 @@ $token = Open-WS1AccessConnection -ClientId "myClientId" -ClientSecret "mySecret
 #>
 Function Open-WS1AccessConnection {
     param (
-        [string]$ClientId,    
+        [string]$ClientId,
         [string]$ClientSecret,
         [string]$AccessURL
     )
@@ -235,9 +235,9 @@ Function Add-WS1User {
     $body = @{
         "schemas"                                                                  = @(
             "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
-            "urn:scim:schemas:extension:workspace:mfa:1.0", 
-            "urn:scim:schemas:extension:workspace:1.0", 
-            "urn:scim:schemas:extension:enterprise:1.0", 
+            "urn:scim:schemas:extension:workspace:mfa:1.0",
+            "urn:scim:schemas:extension:workspace:1.0",
+            "urn:scim:schemas:extension:enterprise:1.0",
             "urn:scim:schemas:core:1.0"
         )
         "name"                                                                     = @{
@@ -331,9 +331,9 @@ Function Update-WS1User {
     $body = @{
         "schemas"                                                                  = @(
             "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
-            "urn:scim:schemas:extension:workspace:mfa:1.0", 
-            "urn:scim:schemas:extension:workspace:1.0", 
-            "urn:scim:schemas:extension:enterprise:1.0", 
+            "urn:scim:schemas:extension:workspace:mfa:1.0",
+            "urn:scim:schemas:extension:workspace:1.0",
+            "urn:scim:schemas:extension:enterprise:1.0",
             "urn:scim:schemas:core:1.0"
         )
         "name"                                                                     = @{
@@ -424,9 +424,9 @@ The base URL for Workspace ONE Access.
 The username of the user to retrieve.
 
 .EXAMPLE
-$userInfo = Get-WS1User -AccessToken $token -AccessURL "access.workspaceone.com" -Username "john.doe"
+$userInfo = Get-WS1UserByUsername -AccessToken $token -AccessURL "access.workspaceone.com" -Username "john.doe"
 #>
-Function Get-WS1User {
+Function Get-WS1UserByUsername {
     param (
         [string]$AccessToken,
         [string]$AccessURL,
@@ -468,9 +468,9 @@ The OAuth access token to authenticate API requests.
 The base URL for Workspace ONE Access.
 
 .EXAMPLE
-$users = Get-WS1Users -AccessToken $token -AccessURL "access.workspaceone.com"
+$users = Get-WS1User -AccessToken $token -AccessURL "access.workspaceone.com"
 #>
-Function Get-WS1Users {
+Function Get-WS1User {
     param (
         [string]$AccessToken,
         [string]$AccessURL
@@ -496,7 +496,7 @@ Function Get-WS1Users {
     Retrieves a specific Workspace ONE directory configuration by Directory ID.
 
 .DESCRIPTION
-    The `Get-WS1Directory` function retrieves configuration details of a specific Workspace ONE directory 
+    The `Get-WS1DirectoryById` function retrieves configuration details of a specific Workspace ONE directory
     using its Directory ID. It uses the Workspace ONE REST API for this operation.
 
 .PARAMETER AccessURL
@@ -513,7 +513,7 @@ Function Get-WS1Users {
 
     This example retrieves the directory configuration for the directory with ID `12345`.
 #>
-Function Get-WS1Directory {
+Function Get-WS1DirectoryById {
     param (
         [string]$AccessURL,
         [string]$AccessToken,
@@ -540,7 +540,7 @@ Function Get-WS1Directory {
     Retrieves all Workspace ONE directory configurations.
 
 .DESCRIPTION
-    The `Get-WS1Directories` function retrieves the configuration details of all Workspace ONE directories, regardless of type.
+    The `Get-WS1Directory` function retrieves the configuration details of all Workspace ONE directories, regardless of type.
     It uses the Workspace ONE REST API for this operation.
 
 .PARAMETER AccessURL
@@ -550,11 +550,11 @@ Function Get-WS1Directory {
     The OAuth2 token used to authenticate API requests.
 
 .EXAMPLE
-    Get-WS1Directories -AccessURL "mytenant.vmwareidentity.com" -accessToken "eyJhbGciOiJIUz..."
+    Get-WS1Directory -AccessURL "mytenant.vmwareidentity.com" -accessToken "eyJhbGciOiJIUz..."
 
     This example retrieves all directory configurations in the Workspace ONE tenant.
 #>
-Function Get-WS1Directories {
+Function Get-WS1Directory {
     param (
         [string]$AccessURL,
         [string]$accessToken
@@ -618,7 +618,7 @@ Function Sync-WS1Directory {
 
     try {
         $response = Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
-        
+
         Write-Output "Directory $DirectoryId synced successfully."
         write-output $response
     }
@@ -672,11 +672,10 @@ Function Get-WS1LoginAuditForUser {
 
     $apiEndpoint = "/analytics/reports/audit"
     $username = $Username.Replace("@", "%40")
-    
+
     # Convert StartDate and EndDate to epoch milliseconds
     $fromMillis = [math]::Round((($StartDate - (Get-Date "1970-01-01"))).TotalMilliseconds)
     $toMillis = [math]::Round((($EndDate - (Get-Date "1970-01-01"))).TotalMilliseconds)
-    
     # Construct the filter query string (no actorUserName filter for this test)
     $filter = "?fromMillis=$fromMillis&toMillis=$toMillis&objectType=LOGIN&pageSize=$PageSize"
 
@@ -785,7 +784,6 @@ Function Get-WS1LoginAuditForDateRange {
     try {
         # Invoke the API call
         $response = Invoke-RestMethod -Method GET -Uri $url -Headers $headers -ErrorAction Stop
-        
         # Display the full response for debugging
         write-output "Audit report retrieved successfully."
 
