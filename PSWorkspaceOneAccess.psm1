@@ -620,7 +620,7 @@ Function Sync-WS1Directory {
         $response = Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
         
         Write-Output "Directory $DirectoryId synced successfully."
-        Write-Host $response
+        write-output $response
     }
     catch {
         Write-Error "Failed to sync directory: $_"
@@ -687,7 +687,7 @@ Function Get-WS1LoginAuditForUser {
         "Content-Type"  = "application/json"
     }
 
-    Write-Host "Requesting data from: $url"
+    write-output "Requesting data from: $url"
 
     try {
         # Make the API request
@@ -705,11 +705,11 @@ Function Get-WS1LoginAuditForUser {
                 $eventType = $event[2]
                 $details = $event[4] | ConvertFrom-Json  # Convert the event details JSON into a PowerShell object
 
-                Write-Host "Date and Time: $timestamp"
-                Write-Host "User Domain: $userDomain"
-                Write-Host "Event Type: $eventType"
-                Write-Host "Details: $($details | ConvertTo-Json -Depth 3)"
-                Write-Host "--------------------------------------------"
+                write-output "Date and Time: $timestamp"
+                write-output "User Domain: $userDomain"
+                write-output "Event Type: $eventType"
+                write-output "Details: $($details | ConvertTo-Json -Depth 3)"
+                write-output "--------------------------------------------"
             }
         }
 
@@ -787,7 +787,7 @@ Function Get-WS1LoginAuditForDateRange {
         $response = Invoke-RestMethod -Method GET -Uri $url -Headers $headers -ErrorAction Stop
         
         # Display the full response for debugging
-        Write-Host "Audit report retrieved successfully."
+        write-output "Audit report retrieved successfully."
 
         # Loop through the data and format it for better readability
         foreach ($event in $response.data) {
@@ -796,11 +796,11 @@ Function Get-WS1LoginAuditForDateRange {
             $eventType = $event[2]
             $details = $event[4] | ConvertFrom-Json  # Convert the JSON string to an object
 
-            Write-Host "Date and Time: $timestamp"
-            Write-Host "User Domain: $userDomain"
-            Write-Host "Event Type: $eventType"
-            Write-Host "Details: $($details | ConvertTo-Json -Depth 3)"
-            Write-Host "--------------------------------------------"
+            write-output "Date and Time: $timestamp"
+            write-output "User Domain: $userDomain"
+            write-output "Event Type: $eventType"
+            write-output "Details: $($details | ConvertTo-Json -Depth 3)"
+            write-output "--------------------------------------------"
         }
 
         # Return the full response if you still want to use it further
