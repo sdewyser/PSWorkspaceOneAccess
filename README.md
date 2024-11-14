@@ -6,7 +6,7 @@ The **PSWorkspaceOneAccess** PowerShell module simplifies interactions with VMwa
 
 ## 🛠️ Features
 - **Open-WS1AccessConnection**: Establishes an OAuth connection using client credentials and retrieves an access token.
-- **Get-WS1MagicToken**: (Coming Soon) Generates a one-time login (Magic Token) for user authentication within Workspace ONE.
+- **Get-WS1MagicToken**: Generates a one-time login (Magic Token) for user authentication within Workspace ONE.
 
 ## 📦 Requirements
 - PowerShell 5.1 or later
@@ -55,9 +55,6 @@ Write-Output "Access Token: $token"
 
 If the connection fails, an error message will be displayed, and the function will return `null`.
 
-### 2. (Coming Soon) Get-WS1MagicToken
-This function will generate a Magic Token for user authentication in Workspace ONE Access. Stay tuned for updates.
-
 ## 📚 Examples
 
 #### Example 1: Using the Access Token
@@ -74,39 +71,14 @@ $response = Invoke-RestMethod -Uri "https://access.workspaceone.com/SAAS/jersey/
 $response
 ```
 
-#### Example 2: Error Handling
-Handling a failed token retrieval:
-
-```powershell
-$token = Open-WS1AccessConnection -ClientId "invalidClientId" -ClientSecret "invalidSecret" -AccessURL "invalid.url"
-
-if (-not $token) {
-    Write-Error "Failed to retrieve access token. Please check your credentials and URL."
-}
-```
-
 ## 🐞 Known Issues
-- **Invalid Client ID or Secret**: If incorrect credentials are provided, the connection will fail with an error message.
-- **Network Connectivity**: Ensure your network allows connections to the Workspace ONE Access API URL.
 
 ## 💡 Tips
 - Store your `ClientId` and `ClientSecret` securely using PowerShell's credential manager or environment variables.
-- Use `-Verbose` with functions for additional output during debugging.
 
 ## 📝 Changelog
 
-### [1.0.0] - Initial Release
-- Added `Open-WS1AccessConnection` function for OAuth token retrieval.
-
 ## 🤝 Contributions
-Contributions are welcome! If you have any improvements or new features in mind, please fork the repository and create a pull request.
-
-### How to Contribute:
-1. Fork the repository.
-2. Create a new feature branch (`git checkout -b feature/your-feature`).
-3. Commit your changes (`git commit -am 'Add new feature'`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a pull request.
 
 ## 📄 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
