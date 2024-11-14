@@ -1,3 +1,4 @@
+PSWorkspaceOneAccess
 📋 Overview
 The PSWorkspaceOneAccess PowerShell module simplifies interactions with VMware Workspace ONE Access. It offers a set of functions to manage OAuth authentication and token retrieval for various Workspace ONE Access operations. This module is particularly useful for administrators and developers integrating Workspace ONE capabilities into their automation workflows.
 
