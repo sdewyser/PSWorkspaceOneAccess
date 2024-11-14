@@ -433,13 +433,19 @@ Function Get-WS1User {
         [string]$Username
     )
 
+    $apiEndpoint = "/SAAS/jersey/manager/api/scim/Users"
+    $username = $username.Replace("@", "%40")
+    $filter = "?filter=userName%20eq%20%22$username%22&sortOrder=descending"
+
+    $url = "https://$AccessURL$apiEndpoint$filter"
+
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/json"
     }
 
     try {
-        $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users?filter=userName eq '${Username}'" -Method GET -Headers $headers -ErrorAction Stop
+        $response = Invoke-RestMethod -Uri $url -Method GET -Headers $headers -ErrorAction Stop
         return $response.Resources | Select-Object -First 1
     }
     catch {
@@ -476,12 +482,148 @@ Function Get-WS1Users {
     }
 
     try {
-        $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users" -Method GET -Headers $headers -ErrorAction Stop
+        $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users?count=9999" -Method GET -Headers $headers -ErrorAction Stop
         return $response.Resources
     }
     catch {
         Write-Error "Failed to get users at ${AccessURL}: $($_.Exception.Message)"
         return $null
+    }
+}
+
+<#
+.SYNOPSIS
+    Retrieves a specific Workspace ONE directory configuration by Directory ID.
+
+.DESCRIPTION
+    The `Get-WS1Directory` function retrieves configuration details of a specific Workspace ONE directory 
+    using its Directory ID. It uses the Workspace ONE REST API for this operation.
+
+.PARAMETER AccessURL
+    The base URL of the Workspace ONE Access tenant (e.g., mytenant.vmwareidentity.com).
+
+.PARAMETER AccessToken
+    The OAuth2 token used to authenticate API requests.
+
+.PARAMETER DirectoryId
+    The unique identifier of the Workspace ONE directory to retrieve.
+
+.EXAMPLE
+    Get-WS1Directory -AccessURL "mytenant.vmwareidentity.com" -AccessToken "eyJhbGciOiJIUz..." -DirectoryId "12345"
+
+    This example retrieves the directory configuration for the directory with ID `12345`.
+#>
+Function Get-WS1Directory {
+    param (
+        [string]$AccessURL,
+        [string]$AccessToken,
+        [string]$DirectoryId
+    )
+
+    $headers = @{
+        "Authorization" = "Bearer $AccessToken"
+    }
+
+    try {
+        $response = Invoke-WebRequest -Uri "https://$AccessURL/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/" -Headers $headers -Method Get
+        $directories = $response | ConvertFrom-Json | Select-Object -ExpandProperty items
+        return $directories | Where-Object { $_.directoryId -eq $DirectoryId }
+    }
+    catch {
+        Write-Error "Failed to retrieve the Workspace ONE directory: $_"
+        return $null
+    }
+}
+
+<#
+.SYNOPSIS
+    Retrieves all Workspace ONE directory configurations.
+
+.DESCRIPTION
+    The `Get-WS1Directories` function retrieves the configuration details of all Workspace ONE directories, regardless of type.
+    It uses the Workspace ONE REST API for this operation.
+
+.PARAMETER AccessURL
+    The base URL of the Workspace ONE Access tenant (e.g., mytenant.vmwareidentity.com).
+
+.PARAMETER accessToken
+    The OAuth2 token used to authenticate API requests.
+
+.EXAMPLE
+    Get-WS1Directories -AccessURL "mytenant.vmwareidentity.com" -accessToken "eyJhbGciOiJIUz..."
+
+    This example retrieves all directory configurations in the Workspace ONE tenant.
+#>
+Function Get-WS1Directories {
+    param (
+        [string]$AccessURL,
+        [string]$accessToken
+    )
+
+    $headers = @{
+        "Authorization" = "Bearer $accessToken"
+    }
+
+    try {
+        $response = Invoke-WebRequest -Uri "https://$AccessURL/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/" -Headers $headers -Method Get
+        return ($response | ConvertFrom-Json | Select-Object -ExpandProperty items)
+    }
+    catch {
+        Write-Error "Failed to retrieve Workspace ONE directories: $_"
+        return $null
+    }
+}
+
+<#
+.SYNOPSIS
+    Triggers a synchronization for a specified Workspace ONE directory.
+
+.DESCRIPTION
+    The `Sync-WS1Directory` function sends a request to sync a directory within Workspace ONE Access.
+    It uses the Workspace ONE REST API and requires authentication through an access token.
+
+.PARAMETER DirectoryId
+    The unique identifier of the Workspace ONE directory to be synchronized.
+
+.PARAMETER AccessURL
+    The base URL of the Workspace ONE Access tenant (e.g., mytenant.vmwareidentity.com).
+
+.PARAMETER accessToken
+    The OAuth2 token used to authenticate API requests.
+
+.EXAMPLE
+    Sync-WS1Directory -DirectoryId "directory12345" -AccessURL "mytenant.vmwareidentity.com" -accessToken "eyJhbGciOiJIUz..."
+
+    This example triggers a synchronization for the directory with the ID `directory12345`.
+#>
+Function Sync-WS1Directory {
+    param (
+        [string]$DirectoryId,
+        [string]$AccessURL,
+        [string]$accessToken
+    )
+
+    $baseUri = "https://$AccessURL"
+    $apiEndpoint = "/SAAS/jersey/manager/api/connectormanagement/directoryconfigurations/$DirectoryId/sync/v2"
+    $url = "$baseUri$apiEndpoint"
+
+    $headers = @{
+        "Authorization" = "Bearer $accessToken"
+        "Content-Type"  = "application/vnd.vmware.horizon.manager.connector.management.directory.sync.trigger.v2+json"
+    }
+
+    $jsonBody = @{
+        "ignoreSafeguards" = $false
+    } | ConvertTo-Json
+
+    try {
+        $response = Invoke-RestMethod -Method POST -Uri $url -Headers $headers -Body $jsonBody -ErrorAction Stop
+        
+        Write-Output "Directory $DirectoryId synced successfully."
+        Write-Host $response
+    }
+    catch {
+        Write-Error "Failed to sync directory: $_"
     }
 }
 
@@ -501,76 +643,170 @@ The base URL for Workspace ONE Access.
 .PARAMETER Username
 The username for which to retrieve login audit logs.
 
+.PARAMETER StartDate
+The start date for the query range (optional, default is 30 days ago).
+
+.PARAMETER EndDate
+The end date for the query range (optional, default is the current date).
+
+.PARAMETER PageSize
+The number of records to retrieve per page (optional, default is 1000).
+
 .EXAMPLE
 $auditLogs = Get-WS1LoginAuditForUser -AccessToken $token -AccessURL "access.workspaceone.com" -Username "john.doe"
+This will retrieve login audit events for the user "john.doe" within the last 30 days.
+
+.EXAMPLE
+$auditLogs = Get-WS1LoginAuditForUser -AccessToken $token -AccessURL "access.workspaceone.com" -Username "john.doe" -StartDate (Get-Date).AddDays(-7) -EndDate (Get-Date)
+This will retrieve login audit events for the user "john.doe" within the last 7 days.
 #>
 Function Get-WS1LoginAuditForUser {
     param (
         [string]$AccessToken,
         [string]$AccessURL,
-        [string]$Username
+        [string]$Username,
+        [datetime]$StartDate = (Get-Date).AddDays(-30),  # Default to last 30 days
+        [datetime]$EndDate = (Get-Date),
+        [int]$PageSize = 1000
     )
+
+    $apiEndpoint = "/analytics/reports/audit"
+    $username = $Username.Replace("@", "%40")
+    
+    # Convert StartDate and EndDate to epoch milliseconds
+    $fromMillis = [math]::Round((($StartDate - (Get-Date "1970-01-01"))).TotalMilliseconds)
+    $toMillis = [math]::Round((($EndDate - (Get-Date "1970-01-01"))).TotalMilliseconds)
+    
+    # Construct the filter query string (no actorUserName filter for this test)
+    $filter = "?fromMillis=$fromMillis&toMillis=$toMillis&objectType=LOGIN&pageSize=$PageSize"
+
+    $url = "https://$AccessURL$apiEndpoint$filter"
 
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/json"
     }
 
-    $url = "https://$AccessURL/SAAS/jersey/manager/api/auditlogs?filter=userName+eq+'$Username'+and+eventType+eq+login"
+    Write-Host "Requesting data from: $url"
 
     try {
+        # Make the API request
         $response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-        return $response.items
+
+        # Check if the data array is empty
+        if ($response.data.Count -eq 0) {
+            Write-Warning "No login events found for user $Username between $StartDate and $EndDate"
+        }
+        else {
+            # Loop through and format the response for better clarity
+            foreach ($event in $response.data) {
+                $timestamp = [datetime]::FromFileTimeUtc($event[0])  # Convert from milliseconds to datetime
+                $userDomain = $event[1]
+                $eventType = $event[2]
+                $details = $event[4] | ConvertFrom-Json  # Convert the event details JSON into a PowerShell object
+
+                Write-Host "Date and Time: $timestamp"
+                Write-Host "User Domain: $userDomain"
+                Write-Host "Event Type: $eventType"
+                Write-Host "Details: $($details | ConvertTo-Json -Depth 3)"
+                Write-Host "--------------------------------------------"
+            }
+        }
+
+        return $response
     }
     catch {
-        Write-Error "Failed to retrieve audit logs at ${AccessURL}: $($_.Exception.Message)"
+        Write-Error "Failed to retrieve login audit logs: $($_.Exception.Message)"
         return $null
     }
 }
 
 <#
 .SYNOPSIS
-Retrieves login audit events for a specified date range.
+Retrieves login audit events or other object types for a specified date range.
 
 .DESCRIPTION
-Fetches login audit logs for all users within a specified time frame.
-
-.PARAMETER AccessToken
-The OAuth access token to authenticate API requests.
+This function retrieves audit events from the Workspace ONE Access API for a specified date range. It allows filtering by object type (default is LOGIN events) and can return data in pages with a specified page size. The function converts the provided date range into epoch milliseconds and constructs the appropriate API URL to fetch the audit data.
 
 .PARAMETER AccessURL
-The base URL for Workspace ONE Access.
+The base URL for the Workspace ONE Access service.
+
+.PARAMETER AccessToken
+The OAuth access token used to authenticate the API requests.
 
 .PARAMETER StartDate
-The start date for the audit log query.
+The start date of the audit query range (required). This date is converted to epoch milliseconds for the API query.
 
 .PARAMETER EndDate
-The end date for the audit log query.
+The end date of the audit query range (required). This date is converted to epoch milliseconds for the API query.
+
+.PARAMETER ObjectType
+The type of object for the audit events (optional, default is "LOGIN"). Other object types may include "LAUNCH", "GROUP", etc.
+
+.PARAMETER PageSize
+The number of records to retrieve per page (optional, default is 5000). The API supports up to 5000 records per request.
 
 .EXAMPLE
-$auditLogs = Get-WS1LoginAuditForDateRange -AccessToken $token -AccessURL "access.workspaceone.com" -StartDate "2024-01-01" -EndDate "2024-01-31"
+$auditLogs = Get-WS1LoginAuditForDateRange -AccessURL "access.workspaceone.com" -AccessToken $token -StartDate (Get-Date).AddDays(-7) -EndDate (Get-Date)
+This will retrieve LOGIN audit events for the last 7 days.
+
+.EXAMPLE
+$auditLogs = Get-WS1LoginAuditForDateRange -AccessURL "access.workspaceone.com" -AccessToken $token -StartDate (Get-Date).AddMonths(-1) -EndDate (Get-Date) -ObjectType "LAUNCH"
+This will retrieve LAUNCH audit events for the last month.
 #>
 Function Get-WS1LoginAuditForDateRange {
     param (
-        [string]$AccessToken,
         [string]$AccessURL,
+        [string]$AccessToken,
         [datetime]$StartDate,
-        [datetime]$EndDate
+        [datetime]$EndDate,
+        [string]$ObjectType = "LOGIN",  # Default to LOGIN events, modify as needed
+        [int]$PageSize = 5000          # Default page size
     )
 
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
-        "Content-Type"  = "application/json"
+        "Accept"        = "application/json"  # Adjusted for the new API response type
     }
 
-    $url = "https://$AccessURL/SAAS/jersey/manager/api/auditlogs?filter=eventType+eq+login+and+timestamp+ge+$($StartDate.ToString('yyyy-MM-dd'))+and+timestamp+le+$($EndDate.ToString('yyyy-MM-dd'))"
+    # Convert dates to epoch milliseconds (correct format)
+    $fromMillis = [math]::Round((($StartDate - (Get-Date "1970-01-01"))).TotalMilliseconds)
+    $toMillis = [math]::Round((($EndDate - (Get-Date "1970-01-01"))).TotalMilliseconds)
+
+    # Ensure fromMillis and toMillis are valid (positive numbers)
+    if ($fromMillis -lt 0 -or $toMillis -lt 0) {
+        Write-Error "Invalid date conversion. Please check the StartDate and EndDate parameters."
+        return
+    }
+
+    # Construct the URL with additional query parameters
+    $url = "https://$AccessURL/analytics/reports/audit?fromMillis=$fromMillis&toMillis=$toMillis&objectType=$ObjectType&pageSize=$PageSize"
 
     try {
-        $response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-        return $response.items
+        # Invoke the API call
+        $response = Invoke-RestMethod -Method GET -Uri $url -Headers $headers -ErrorAction Stop
+        
+        # Display the full response for debugging
+        Write-Host "Audit report retrieved successfully."
+
+        # Loop through the data and format it for better readability
+        foreach ($event in $response.data) {
+            $timestamp = [datetime]::FromFileTimeUtc($event[0])  # Convert timestamp from milliseconds
+            $userDomain = $event[1]
+            $eventType = $event[2]
+            $details = $event[4] | ConvertFrom-Json  # Convert the JSON string to an object
+
+            Write-Host "Date and Time: $timestamp"
+            Write-Host "User Domain: $userDomain"
+            Write-Host "Event Type: $eventType"
+            Write-Host "Details: $($details | ConvertTo-Json -Depth 3)"
+            Write-Host "--------------------------------------------"
+        }
+
+        # Return the full response if you still want to use it further
+        return $response
     }
     catch {
-        Write-Error "Failed to retrieve audit logs at ${AccessURL}: $($_.Exception.Message)"
-        return $null
+        Write-Error "Failed to retrieve audit report: $_"
     }
 }
