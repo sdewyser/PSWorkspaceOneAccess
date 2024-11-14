@@ -116,6 +116,7 @@ The username for whom to reset the Magic Token.
 $newLink = Reset-WS1MagicToken -AccessToken $token -AccessURL "access.workspaceone.com" -Domain "myDomain" -Username "john.doe"
 #>
 Function Reset-WS1MagicToken {
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [string]$AccessToken,
         [string]$AccessURL,
@@ -124,9 +125,11 @@ Function Reset-WS1MagicToken {
     )
 
     try {
-        Remove-WS1MagicToken -AccessToken $AccessToken -AccessURL $AccessURL -Username $Username
-        $loginLink = Get-WS1MagicToken -AccessToken $AccessToken -AccessURL $AccessURL -Domain $Domain -Username $Username
-        return $loginLink
+        if ($PSCmdlet.ShouldProcess('Removing user')) {
+            Remove-WS1MagicToken -AccessToken $AccessToken -AccessURL $AccessURL -Username $Username
+            $loginLink = Get-WS1MagicToken -AccessToken $AccessToken -AccessURL $AccessURL -Domain $Domain -Username $Username
+            return $loginLink
+        }
     }
     catch {
         Write-Error "Failed to reset Magic Token for user ${Username} at ${AccessURL}: $($_.Exception.Message)"
@@ -154,6 +157,7 @@ The username whose Magic Token is to be removed.
 Remove-WS1MagicToken -AccessToken $token -AccessURL "access.workspaceone.com" -Username "john.doe"
 #>
 Function Remove-WS1MagicToken {
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [string]$AccessToken,
         [string]$AccessURL,
@@ -167,17 +171,19 @@ Function Remove-WS1MagicToken {
     }
 
     try {
-        $user = Get-WS1User -AccessToken $AccessToken -AccessURL $AccessURL -Username $Username
+        $user = Get-WS1UserByUsername -AccessToken $AccessToken -AccessURL $AccessURL -Username $Username
         if (-not $user) {
             throw "User ${Username} not found"
         }
         $userId = $user.id
-        Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/token/auth/state/$userId" -Method DELETE -Headers $headers -ErrorAction Stop
-        return "Magic Token for ${Username} removed successfully."
+        if ($PSCmdlet.ShouldProcess('Removing magic token')) {
+            Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/token/auth/state/$userId" -Method DELETE -Headers $headers -ErrorAction Stop
+            # return "Magic Token for ${Username} removed successfully."
+        }
     }
     catch {
         Write-Error "Failed to remove Magic Token for user ${Username} at ${AccessURL}: $($_.Exception.Message)"
-        return $null
+        # return $null
     }
 }
 
@@ -216,6 +222,7 @@ The organization name for the user.
 Add-WS1User -AccessToken $token -AccessURL "access.workspaceone.com" -Username "new.user" -GivenName "New" -FamilyName "User" -Phone "1234567890" -Email "new.user@example.com" -Organization "Sales"
 #>
 Function Add-WS1User {
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [string]$AccessToken,
         [string]$AccessURL,
@@ -268,8 +275,10 @@ Function Add-WS1User {
     } | ConvertTo-Json -Depth 5
 
     try {
-        $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users" -Method POST -Headers $headers -Body $body -ErrorAction Stop
-        return $response
+        if ($PSCmdlet.ShouldProcess('Adding user')) {
+            $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users" -Method POST -Headers $headers -Body $body -ErrorAction Stop
+            return $response
+        }
     }
     catch {
         Write-Error "Failed to add user ${Username} to Workspace ONE at ${AccessURL}: $($_.Exception.Message)"
@@ -312,6 +321,7 @@ The updated email address of the user.
 Update-WS1User -AccessToken $token -AccessURL "access.workspaceone.com" -UserId "12345" -GivenName "Updated" -FamilyName "User" -Username "updated.user" -Phone "9876543210" -Email "updated.user@example.com"
 #>
 Function Update-WS1User {
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [string]$AccessToken,
         [string]$AccessURL,
@@ -357,8 +367,10 @@ Function Update-WS1User {
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users/$UserId" -Method PATCH -Headers $headers -Body $body -ErrorAction Stop
-        return $response
+        if ($PSCmdlet.ShouldProcess('Updating user')) {
+            $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users/$UserId" -Method PATCH -Headers $headers -Body $body -ErrorAction Stop
+            return $response
+        }
     }
     catch {
         Write-Error "Failed to update user ${UserId} at ${AccessURL}: $($_.Exception.Message)"
@@ -386,6 +398,7 @@ The unique identifier of the user to be removed.
 Remove-WS1User -AccessToken $token -AccessURL "access.workspaceone.com" -UserId "12345"
 #>
 Function Remove-WS1User {
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [string]$AccessToken,
         [string]$AccessURL,
@@ -398,12 +411,14 @@ Function Remove-WS1User {
     }
 
     try {
-        Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users/$UserId" -Method DELETE -Headers $headers -ErrorAction Stop
-        return "User ${UserId} removed successfully."
+        if ($PSCmdlet.ShouldProcess('Removing user')) {
+            Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users/$UserId" -Method DELETE -Headers $headers -ErrorAction Stop
+            #return "User ${UserId} removed successfully."
+        }
     }
     catch {
         Write-Error "Failed to remove user ${UserId} at ${AccessURL}: $($_.Exception.Message)"
-        return $null
+        #return $null
     }
 }
 
@@ -665,7 +680,7 @@ Function Get-WS1LoginAuditForUser {
         [string]$AccessToken,
         [string]$AccessURL,
         [string]$Username,
-        [datetime]$StartDate = (Get-Date).AddDays(-30),  # Default to last 30 days
+        [datetime]$StartDate = (Get-Date).AddDays(-30), # Default to last 30 days
         [datetime]$EndDate = (Get-Date),
         [int]$PageSize = 1000
     )
@@ -759,7 +774,7 @@ Function Get-WS1LoginAuditForDateRange {
         [string]$AccessToken,
         [datetime]$StartDate,
         [datetime]$EndDate,
-        [string]$ObjectType = "LOGIN",  # Default to LOGIN events, modify as needed
+        [string]$ObjectType = "LOGIN", # Default to LOGIN events, modify as needed
         [int]$PageSize = 5000          # Default page size
     )
 
