@@ -76,7 +76,7 @@ Function Get-WS1MagicToken {
         "Accept"        = "application/vnd.vmware.horizon.manager.tokenauth.link.response+json"
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/vnd.vmware.horizon.manager.tokenauth.generation.request+json"
-    } | ConvertTo-Json
+    }
 
     $body = @{
         domain   = $Domain
@@ -164,7 +164,7 @@ Function Remove-WS1MagicToken {
         "Accept"        = "application/vnd.vmware.horizon.manager.tokenauth.link.response+json"
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/vnd.vmware.horizon.manager.tokenauth.generation.request+json"
-    } | ConvertTo-Json
+    }
 
     try {
         $user = Get-WS1User -AccessToken $AccessToken -AccessURL $AccessURL -Username $Username
@@ -395,7 +395,7 @@ Function Remove-WS1User {
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/json"
-    } | ConvertTo-Json
+    }
 
     try {
         Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users/$UserId" -Method DELETE -Headers $headers -ErrorAction Stop
@@ -436,7 +436,7 @@ Function Get-WS1User {
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/json"
-    } | ConvertTo-Json
+    }
 
     try {
         $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users?filter=userName eq '${Username}'" -Method GET -Headers $headers -ErrorAction Stop
@@ -473,7 +473,7 @@ Function Get-WS1Users {
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/json"
-    } | ConvertTo-Json
+    }
 
     try {
         $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users" -Method GET -Headers $headers -ErrorAction Stop
@@ -514,7 +514,7 @@ Function Get-WS1LoginAuditForUser {
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/json"
-    } | ConvertTo-Json
+    }
 
     $url = "https://$AccessURL/SAAS/jersey/manager/api/auditlogs?filter=userName+eq+'$Username'+and+eventType+eq+login"
 
@@ -561,7 +561,7 @@ Function Get-WS1LoginAuditForDateRange {
     $headers = @{
         "Authorization" = "Bearer $AccessToken"
         "Content-Type"  = "application/json"
-    } | ConvertTo-Json
+    }
 
     $url = "https://$AccessURL/SAAS/jersey/manager/api/auditlogs?filter=eventType+eq+login+and+timestamp+ge+$($StartDate.ToString('yyyy-MM-dd'))+and+timestamp+le+$($EndDate.ToString('yyyy-MM-dd'))"
 
