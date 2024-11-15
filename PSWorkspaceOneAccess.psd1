@@ -16,9 +16,9 @@
         'Update-WS1User',
         'Remove-WS1User',
         'Get-WS1User',
-        'Get-WS1Users',
+        'Get-WS1UserByUsername',
         'Get-WS1Directory',
-        'Get-WS1Directories',
+        'Get-WS1DirectoryById',
         'Sync-WS1Directory',
         'Get-WS1LoginAuditForUser',
         'Get-WS1LoginAuditForDateRange'
