@@ -68,4 +68,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 💬 Contact
 For any questions or issues, please open an issue on the GitHub repository:
 
-- GitHub: [ysdewyser](https://github.com/sdewyser)
+- GitHub: [sdewyser](https://github.com/sdewyser)
