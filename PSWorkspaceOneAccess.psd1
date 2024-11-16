@@ -39,7 +39,7 @@
     # Logging & Tracing
     PrivateData                = @{
         PSData = @{
-            Tags         = @('WorkspaceONE', 'PowerShell', 'Automation', 'Identity Management', 'Omnissa')
+            Tags         = @('WorkspaceONE', 'PowerShell', 'Automation', 'Access', 'Omnissa')
             ReleaseNotes = @'
                 Initial release of the Workspace ONE management module:
                 - Authentication and token management
