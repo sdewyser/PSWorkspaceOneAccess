@@ -1,6 +1,6 @@
 @{
     # General Information
-    ModuleVersion              = '1.0.0'
+    ModuleVersion              = '1.0.1'
     GUID                       = 'a0fa36d3-b309-4ef7-a0d6-9bc60197e56d'  # Generate a unique GUID using PowerShell [guid]::NewGuid()
     Author                     = 'Stefaan Dewulf'
     CompanyName                = 'dewyser.net'
@@ -21,7 +21,8 @@
         'Get-WS1DirectoryById',
         'Sync-WS1Directory',
         'Get-WS1LoginAuditForUser',
-        'Get-WS1LoginAuditForDateRange'
+        'Get-WS1LoginAuditForDateRange',
+        'Get-WS1AuditInformation'
     )
     CmdletsToExport            = @()  # Leave blank if only exporting functions
     VariablesToExport          = @()
@@ -41,10 +42,15 @@
         PSData = @{
             Tags         = @('WorkspaceONE', 'PowerShell', 'Automation', 'Access', 'Omnissa')
             ReleaseNotes = @'
-                Initial release of the Workspace ONE management module:
-                - Authentication and token management
-                - User CRUD operations
-                - Audit log retrieval
+                Version 1.1.0:
+                - Added `Get-WS1AuditInformation` to retrieve audit logs from Workspace ONE. This can replace Get-WS1LoginAuditForDateRange and Get-WS1LoginAuditForUser
+                - `Get-WS1AuditInformation` returns a PowerShell object instead of json.
+
+                Version 1.0.0:
+                - Initial release of the Workspace ONE management module:
+                  - Authentication and token management
+                  - User CRUD operations
+                  - Audit log retrieval
 '@
         }
     }
