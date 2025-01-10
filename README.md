@@ -59,6 +59,7 @@ The **PSWorkspaceOneAccess** PowerShell module simplifies interactions with VMwa
 
 ## 📝 Changelog
 
+### [1.0.1] - Added new command Get-WS1AuditInformation 
 ### [1.0.0] - Initial Release
 
 ## 🤝 Contributions
