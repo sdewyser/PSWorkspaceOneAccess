@@ -21,6 +21,8 @@ The **PSWorkspaceOneAccess** PowerShell module simplifies interactions with VMwa
 - **Get-WS1LoginAuditForDateRange**: Retrieves login audit logs for all users within a specified date range.
 - **Get-WS1AuditReport**: Retrieves a detailed audit report for Workspace ONE Access events.
 - **Get-WS1AuditInformation**: Retrieves a detailed audit report for Workspace ONE Access events and replaces Get-WS1LoginAuditForUser, WS1LoginAuditForDateRange and Get-WS1AuditReport.
+- **Get-WS1WebAppAssignments**: Retrieves assignments for a specified web application in Workspace ONE Access.
+- **Get-WS1WebApps**: Retrieves a list of web applications available in Workspace ONE Access.
 
 
 ## 📦 Requirements
@@ -59,6 +61,8 @@ The **PSWorkspaceOneAccess** PowerShell module simplifies interactions with VMwa
 
 ## 📝 Changelog
 
+### [1.2.0] - Added new commands Get-WS1WebApps and Get-WS1WebAppAssignments
+### [1.1.0] - Updated Add-WS1User and Update-WS1User with additional properties so a Active Directory user can added and/or updated (test)
 ### [1.0.1] - Added new command Get-WS1AuditInformation 
 ### [1.0.0] - Initial Release
 
