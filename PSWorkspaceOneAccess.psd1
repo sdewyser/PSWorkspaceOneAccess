@@ -1,13 +1,13 @@
 @{
     # General Information
-    ModuleVersion              = '1.0.1'
-    GUID                       = 'a0fa36d3-b309-4ef7-a0d6-9bc60197e56d'  # Generate a unique GUID using PowerShell [guid]::NewGuid()
-    Author                     = 'Stefaan Dewulf'
-    CompanyName                = 'dewyser.net'
-    Description                = 'A PowerShell module for managing Workspace ONE Access users.'
+    ModuleVersion          = '1.1.0'
+    GUID                   = 'a0fa36d3-b309-4ef7-a0d6-9bc60197e56d'  # Generate a unique GUID using PowerShell [guid]::NewGuid()
+    Author                 = 'Stefaan Dewulf'
+    CompanyName            = 'dewyser.net'
+    Description            = 'A PowerShell module for managing Workspace ONE Access users.'
     
     # Module Features
-    FunctionsToExport          = @(
+    FunctionsToExport      = @(
         'Open-WS1AccessConnection',
         'Get-WS1MagicToken',
         'Reset-WS1MagicToken',
@@ -22,27 +22,32 @@
         'Sync-WS1Directory',
         'Get-WS1LoginAuditForUser',
         'Get-WS1LoginAuditForDateRange',
-        'Get-WS1AuditInformation'
+        'Get-WS1AuditInformation',
+        'Update-WS1ADUser',
+        'Add-WS1ADUser'
     )
-    CmdletsToExport            = @()  # Leave blank if only exporting functions
-    VariablesToExport          = @()
-    AliasesToExport            = @()
+    CmdletsToExport        = @()  # Leave blank if only exporting functions
+    VariablesToExport      = @()
+    AliasesToExport        = @()
 
     # Compatibility
-    PowerShellVersion          = '5.1'  # Specify the minimum version of PowerShell required
-    CLRVersion                 = '4.0'
-    DotNetFrameworkVersion     = '4.7.2'  # Specify the required .NET version, if applicable
-    ProcessorArchitecture      = 'None'  # Could be x86, x64, or Any
+    PowerShellVersion      = '5.1'  # Specify the minimum version of PowerShell required
+    CLRVersion             = '4.0'
+    DotNetFrameworkVersion = '4.7.2'  # Specify the required .NET version, if applicable
+    ProcessorArchitecture  = 'None'  # Could be x86, x64, or Any
 
     # Help Info
-    HelpInfoURI                = 'https://github.com/sdewyser/PSWorkspaceOneAccess#readme'  # Provide a URL to online documentation if available
+    HelpInfoURI            = 'https://github.com/sdewyser/PSWorkspaceOneAccess#readme'  # Provide a URL to online documentation if available
 
     # Logging & Tracing
-    PrivateData                = @{
+    PrivateData            = @{
         PSData = @{
             Tags         = @('WorkspaceONE', 'PowerShell', 'Automation', 'Access', 'Omnissa')
             ReleaseNotes = @'
-                Version 1.1.0:
+                Version 1.1.0
+                - Updated Add-WS1User and Update-WS1User with additionalproperties so a Active Directory user can added and/or updated.
+
+                Version 1.0.1:
                 - Added `Get-WS1AuditInformation` to retrieve audit logs from Workspace ONE. This can replace Get-WS1LoginAuditForDateRange and Get-WS1LoginAuditForUser
                 - `Get-WS1AuditInformation` returns a PowerShell object instead of json.
 

@@ -231,7 +231,8 @@ Function Add-WS1User {
         [string]$FamilyName,
         [string]$Phone,
         [string]$Email,
-        [string]$Organization
+        [string]$Organization,
+        [string]$Domain
     )
 
     $headers = @{
@@ -241,7 +242,7 @@ Function Add-WS1User {
 
     $body = @{
         "schemas"                                                                  = @(
-            "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
+            # "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
             "urn:scim:schemas:extension:workspace:mfa:1.0",
             "urn:scim:schemas:extension:workspace:1.0",
             "urn:scim:schemas:extension:enterprise:1.0",
@@ -263,15 +264,15 @@ Function Add-WS1User {
             }
         )
         "urn:scim:schemas:extension:workspace:1.0"                                 = @{
-            "domain"            = "ssp"
+            "domain"            = $Domain
             "userPrincipalName" = $Username
         }
         "urn:scim:schemas:extension:enterprise:1.0"                                = @{
             "organization" = $Organization
         }
-        "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0" = @{
+        <#"urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0" = @{
             "telephoneNumber" = $Phone
-        }
+        }#>
     } | ConvertTo-Json -Depth 5
 
     try {
@@ -340,7 +341,7 @@ Function Update-WS1User {
 
     $body = @{
         "schemas"                                                                  = @(
-            "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
+            #"urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
             "urn:scim:schemas:extension:workspace:mfa:1.0",
             "urn:scim:schemas:extension:workspace:1.0",
             "urn:scim:schemas:extension:enterprise:1.0",
@@ -361,9 +362,9 @@ Function Update-WS1User {
                 value = $Phone
             }
         )
-        "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0" = @{
+        <#"urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0" = @{
             "telephoneNumber" = $Phone
-        }
+        }#>
     } | ConvertTo-Json
 
     try {
@@ -978,6 +979,239 @@ Function Get-WS1AuditInformation {
     }
     catch {
         Write-Error "Failed to retrieve login audit logs: $($_.Exception.Message)"
+        return $null
+    }
+}
+
+<#
+.SYNOPSIS
+Retrieves a list of web applications available in Workspace ONE Access.
+
+.DESCRIPTION
+Fetches web applications from the Workspace ONE Access catalog, including attributes such as labels, UI capabilities, and authentication information.
+
+.PARAMETER AccessToken
+The OAuth access token to authenticate API requests.
+
+.PARAMETER AccessURL
+The base URL for Workspace ONE Access.
+
+.EXAMPLE
+Get-WS1WebApps -AccessToken $token -AccessURL "access.workspaceone.com"
+#>
+function Get-WS1WebApps {
+    param (
+        [string]$AccessToken,
+        [string]$AccessURL
+    )
+
+    $headers = @{
+        "Authorization" = "Bearer $AccessToken"
+        "Accept"        = "application/vnd.vmware.horizon.manager.catalog.item.list+json"
+        "Content-Type"  = "application/vnd.vmware.horizon.manager.catalog.search+json"
+    }
+
+    $json = @{
+        includeAttributes = @("labels", "uiCapabilities", "authInfo")
+        includeTypes      = @("Saml11", "Saml20", "WSFed12", "WebAppLink", "AnyApp")
+        nameFilter        = ""
+        categories        = @()
+        rootResource      = $false
+    } | ConvertTo-Json -Depth 2
+
+    $url = "https://$AccessURL/SAAS/jersey/manager/api/catalogitems/search?startIndex=0&pageSize=50"
+
+    $response = Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $json
+
+    return $response.items
+}
+
+<#
+.SYNOPSIS
+Retrieves assignments for a specified web application in Workspace ONE Access.
+
+.DESCRIPTION
+Fetches entitlement details for a specific web application, including assigned users and groups.
+
+.PARAMETER AccessToken
+The OAuth access token to authenticate API requests.
+
+.PARAMETER AccessURL
+The base URL for Workspace ONE Access.
+
+.PARAMETER AppID
+The unique identifier of the web application whose assignments need to be retrieved.
+
+.EXAMPLE
+Get-WS1WebAppAssignments -AccessToken $token -AccessURL "access.workspaceone.com" -AppID "12345"
+#>
+function Get-WS1WebAppAssignments {
+    param (
+        [string]$AccessToken,
+        [string]$AccessURL,
+        [string]$AppID
+    )
+
+    $headers = @{
+        "Authorization" = "Bearer $AccessToken"
+        "Content-Type"  = "application/vnd.vmware.horizon.manager.entitlements.definition.catalogitem+json"
+    }
+
+    $url = "https://$AccessURL/SAAS/jersey/manager/api/entitlements/definitions/catalogitems/$AppID"
+    $response = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+
+    return $response.items
+}
+
+Function Update-WS1ADUser {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
+        [string]$AccessToken,
+        [string]$AccessURL,
+        [string]$UserId,
+        [string]$GivenName,
+        [string]$FamilyName,
+        [string]$Username,
+        [string]$Phone,
+        [string]$Email,
+        [hashtable]$AdditionalProperties
+    )
+
+    $headers = @{
+        "Authorization" = "Bearer $AccessToken"
+        "Content-Type"  = "application/json"
+    }
+
+    $friendlyToSchemaMap = @{
+        "TelephoneNumber" = "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0.telephoneNumber"
+        "HireDate"        = "urn:scim:schemas:extension:enterprise:1.0.hireDate"
+        "BirthDate"       = "urn:scim:schemas:extension:enterprise:1.0.birthDate"
+        "ManagerDN"       = "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0.managerDN"
+        # Add additional friendly properties as needed
+    }
+
+    # Map friendly property names to schema-compliant attributes
+    $additionalSchemaProperties = @{}
+    foreach ($key in $AdditionalProperties.Keys) {
+        if ($friendlyToSchemaMap.ContainsKey($key)) {
+            $additionalSchemaProperties[$friendlyToSchemaMap[$key]] = $AdditionalProperties[$key]
+        } else {
+            Write-Warning "Unknown property '$key' in AdditionalProperties. It will be ignored."
+        }
+    }
+
+    # Build request body
+    $body = @{
+        "schemas"      = @(
+            "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
+            "urn:scim:schemas:extension:workspace:mfa:1.0",
+            "urn:scim:schemas:extension:workspace:1.0",
+            "urn:scim:schemas:extension:enterprise:1.0",
+            "urn:scim:schemas:core:1.0"
+        )
+        "name"         = @{
+            "givenName"  = $GivenName
+            "familyName" = $FamilyName
+        }
+        "userName"     = $Username
+        "emails"       = @(
+            @{
+                value = $Email
+            }
+        )
+        "phoneNumbers" = @(
+            @{
+                value = $Phone
+            }
+        )
+    } + $additionalSchemaProperties | ConvertTo-Json -Depth 10
+
+    try {
+        if ($PSCmdlet.ShouldProcess("Updating user $UserId")) {
+            $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users/$UserId" -Method PATCH -Headers $headers -Body $body -ErrorAction Stop
+            return $response
+        }
+    }
+    catch {
+        Write-Error "Failed to update user $UserId at $($AccessURL): $($_.Exception.Message)"
+        return $null
+    }
+}
+
+Function Add-WS1ADUser {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
+        [string]$AccessToken,
+        [string]$AccessURL,
+        [string]$Username,
+        [string]$GivenName,
+        [string]$FamilyName,
+        [string]$Phone,
+        [string]$Email,
+        [string]$Organization,
+        [hashtable]$AdditionalProperties
+    )
+
+    $headers = @{
+        "Authorization" = "Bearer $AccessToken"
+        "Content-Type"  = "application/json"
+    }
+
+    $friendlyToSchemaMap = @{
+        "TelephoneNumber" = "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0.telephoneNumber"
+        "HireDate"        = "urn:scim:schemas:extension:enterprise:1.0.hireDate"
+        "BirthDate"       = "urn:scim:schemas:extension:enterprise:1.0.birthDate"
+        "ManagerDN"       = "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0.managerDN"
+        # Add additional friendly properties as needed
+    }
+
+    # Map friendly property names to schema-compliant attributes
+    $additionalSchemaProperties = @{}
+    foreach ($key in $AdditionalProperties.Keys) {
+        if ($friendlyToSchemaMap.ContainsKey($key)) {
+            $additionalSchemaProperties[$friendlyToSchemaMap[$key]] = $AdditionalProperties[$key]
+        } else {
+            Write-Warning "Unknown property '$key' in AdditionalProperties. It will be ignored."
+        }
+    }
+
+    # Build request body
+    $body = @{
+        "schemas"      = @(
+            "urn:scim:schemas:extension:workspace:tenant:itq-consultancy-b-v-2714:1.0",
+            "urn:scim:schemas:extension:workspace:mfa:1.0",
+            "urn:scim:schemas:extension:workspace:1.0",
+            "urn:scim:schemas:extension:enterprise:1.0",
+            "urn:scim:schemas:core:1.0"
+        )
+        "name"         = @{
+            "givenName"  = $GivenName
+            "familyName" = $FamilyName
+        }
+        "userName"     = $Username
+        "emails"       = @(
+            @{
+                value = $Email
+            }
+        )
+        "phoneNumbers" = @(
+            @{
+                value = $Phone
+            }
+        )
+        "urn:scim:schemas:extension:enterprise:1.0" = @{
+            "organization" = $Organization
+        }
+    } + $additionalSchemaProperties | ConvertTo-Json -Depth 10
+
+    try {
+        if ($PSCmdlet.ShouldProcess("Adding user $Username")) {
+            $response = Invoke-RestMethod -Uri "https://${AccessURL}/SAAS/jersey/manager/api/scim/Users" -Method POST -Headers $headers -Body $body -ErrorAction Stop
+            return $response
+        }
+    }
+    catch {
+        Write-Error "Failed to add user $Username to Workspace ONE at $($AccessURL): $($_.Exception.Message)"
         return $null
     }
 }
