@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+Retrieves a list of application access policies from Workspace ONE Access.
+
+.DESCRIPTION
+Queries the Workspace ONE Access REST API to fetch paginated policy rulesets tagged as APP_ACCESS.
+Handles bearer token authentication and pagination automatically.
+
+.PARAMETER accessURL
+The hostname of the Workspace ONE Access tenant.
+
+.PARAMETER accessToken
+The bearer token used to authenticate API requests.
+
+.EXAMPLE
+Get-PolicyList -accessURL $url -accessToken $token
+
+.NOTES
+Author: Stefaan
+#>
 function Get-WS1PolicyList {
     param (
         [Parameter(Mandatory)][string]$accessURL,

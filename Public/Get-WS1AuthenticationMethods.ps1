@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+Retrieves a list of authentication methods configured in Workspace ONE Access.
+
+.DESCRIPTION
+Calls the Workspace ONE Access API endpoint to retrieve a summary of all available authentication methods,
+their names, UUIDs, enabled status, and ownership.
+
+.PARAMETER accessURL
+The hostname of the Workspace ONE Access tenant.
+
+.PARAMETER accessToken
+The bearer token used to authenticate API requests.
+
+.EXAMPLE
+Get-AuthenticationMethods -accessURL $url -accessToken $token
+
+.NOTES
+Author: Stefaan
+#>
 function Get-WS1AuthenticationMethods {
     param (
         [Parameter(Mandatory)][string]$accessURL,
