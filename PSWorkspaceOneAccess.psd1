@@ -67,7 +67,7 @@ ProcessorArchitecture = 'None'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Add-WS1ADUser', 'Add-WS1User', 'Get-WS1AuditInformation', 'Get-WS1AuthenticationMethods', 'Get-WS1Directory', 'Get-WS1DirectoryById', 'Get-WS1LoginAuditForDateRange', 'Get-WS1LoginAuditForUser', 'Get-WS1MagicToken', 'Get-WS1PolicyList', 'Get-WS1User', 'Get-WS1UserByUsername', 'Get-WS1WebAppAssignments', 'Get-WS1WebApps', 'Open-WS1AccessConnection', 'Remove-WS1MagicToken', 'Remove-WS1User', 'Reset-WS1MagicToken' ,'Sync-WS1Directory', 'Update-WS1ADUser', 'Update-WS1User' 
+FunctionsToExport = 'Add-WS1ADUser', 'Add-WS1User', 'Get-WS1AuditInformation', 'Get-WS1AuthenticationMethods', 'Get-WS1Directory', 'Get-WS1DirectoryById', 'Get-WS1LoginAuditForDateRange', 'Get-WS1LoginAuditForUser', 'Get-WS1MagicToken', 'Get-WS1PolicyList', 'Get-WS1User', 'Get-WS1UserByUsername', 'Get-WS1UserAuthenticator', 'Get-WS1WebAppAssignments', 'Get-WS1WebApps', 'Open-WS1AccessConnection', 'Remove-WS1MagicToken', 'Remove-WS1User', 'Reset-WS1MagicToken' ,'Sync-WS1Directory', 'Update-WS1ADUser', 'Update-WS1User' 
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
