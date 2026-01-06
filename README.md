@@ -17,6 +17,7 @@ The **PSWorkspaceOneAccess** PowerShell module simplifies interactions with VMwa
 - **Get-WS1PolicyList**: Retrieves a list of configured policies.
 - **Get-WS1User**: Retrieves a list of users from Workspace ONE Access.
 - **Get-WS1UserByUsername**: Retrieves a specific user from Workspace ONE Access by username.
+- **Get-WS1UserAuthenticator**: Retrieves authenticator of a user based on their username in Workspace ONE.
 - **Get-WS1WebAppAssignments**: Retrieves assignments for a specified web application in Workspace ONE Access.
 - **Get-WS1WebApps**: Retrieves a list of web applications available in Workspace ONE Access.
 - **Open-WS1AccessConnection**: Establishes an OAuth connection using client credentials and retrieves an access token.
